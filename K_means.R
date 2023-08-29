@@ -1,13 +1,10 @@
 require(data.table)
 
-
-
-# Simulate group data
+# Simulate group data and estimate it
 # Functions:
 # (1) generate data
 # (2) Lloyds algorithm
 
-# (1)
 gen_data <-function(dgp,prob_G){
   Ndim = dgp@Ndim
   Tdim = dgp@Tdim
@@ -17,9 +14,7 @@ gen_data <-function(dgp,prob_G){
   
   alpha <- sort(rnorm(G,0,siga))
   error <- matrix(rnorm(Ndim*Tdim,0,sigerr),Ndim,Tdim)
-  
   assign <- sample(sample(1:G,Ndim,replace=TRUE,prob=prob_G))
-  
   alpha_mat <- matrix(rep(alpha[assign],Tdim),Ndim,Tdim)
   y = alpha_mat + error
   return(list(y,alpha,assign))
@@ -27,6 +22,7 @@ gen_data <-function(dgp,prob_G){
 
 # (2) Lloyd's algorithm
 Lloyds <- function(dgp,y,alpha_ini,itermax){
+  flag <- 0
   Ndim <- dgp@Ndim
   Tdim <- dgp@Tdim
   G <- dgp@G
@@ -46,6 +42,12 @@ Lloyds <- function(dgp,y,alpha_ini,itermax){
       res[,gg] = rowSums(resaux2)
     }
     new_assign = apply(res, 1, FUN = which.min)
+    # check if all groups are full
+    if(length(unique(new_assign))<G){
+      iter = 50
+      flag = -1
+      #print(iter)
+    }else{
     data[,assign:=as.character(new_assign[i])]
     # update alpha
     model <- glm(formula = y ~ assign + 0, data = data)
@@ -58,9 +60,10 @@ Lloyds <- function(dgp,y,alpha_ini,itermax){
     alpha_ini = alpha_new
     iter = iter+1
     #print(iter)
+    data[,alpha_out:=alpha_ini[as.numeric(assign)]]
+    }
   }
-  data[,alpha_out:=alpha_ini[as.numeric(assign)]]
-  return(data)
+  return(list(data,flag))
 }
 
 
@@ -69,8 +72,9 @@ Lloyds <- function(dgp,y,alpha_ini,itermax){
 setClass("DGP", slots = list(Ndim = "numeric",Tdim = "numeric",G = "numeric",sig_alpha = "numeric", sig_err = "numeric"))
 
 
-dgp <- new("DGP",Ndim=1000,Tdim=10,G=3,sig_alpha = 10,sig_err=1)
-prob_G = c(0.3,0.3,0.4)
+dgp <- new("DGP",Ndim=1000,Tdim=5,G=5,sig_alpha = 10,sig_err=10)
+prob_G = rep(1/dgp@G,dgp@G)
+#prob_G = c(0.5,0.5)
 itermax = 50
 
 # Generate data:
@@ -80,34 +84,51 @@ alpha0 <- data_out[[2]]
 assign0 <- data_out[[3]]
 
 # Estimate the model
-ini_cond = 10
-for(ii in 1:ini_cond){
+inicond = 10
+min_loss_mat = matrix(0,inicond,1)
+for(ii in 1:inicond){
   print(ii)
-  alpha_ini = quantile(y,seq(1/(dgp@G+1),1-1/(dgp@G+1),1/(dgp@G+1))) + rnorm(dgp@G)
-  dataoutput <- Lloyds(dgp,y,alpha_ini)
-  loss = sum((dataoutput$y-dataoutput$alpha_out)^2)
-  
+  alpha_ini = sort(quantile(y,seq(1/(dgp@G+1),1-1/(dgp@G+1),1/(dgp@G+1))) + rnorm(dgp@G))
+  LLoydsout <- Lloyds(dgp,y,alpha_ini)
+  dataoutput <- LLoydsout[[1]]
+  flag <- LLoydsout[[2]]
+  if (flag == 0){
+    loss = sum((dataoutput$y-dataoutput$alpha_out)^2)/(dgp@Ndim*dgp@Tdim)
+  }else{
+    loss =dgp@sig_err*dgp@Ndim*dgp@Tdim
+  }
   missclass <- 1-sum(dataoutput$assign[seq(1, dgp@Ndim*dgp@Tdim, by = dgp@Tdim)] == assign0)/dgp@Ndim
   print(list(missclass,loss))
-  
   if(ii ==1){
     min_loss = loss
-    best_data = dataout
-    missclass <- 1-sum(best_data$assign[seq(1, dgp@Ndim*dgp@Tdim, by = dgp@Tdim)] == assign0)/dgp@Ndim
-    print(list(missclass,loss))
+    best_data = dataoutput
+    #missclass <- 1-sum(best_data$assign[seq(1, dgp@Ndim*dgp@Tdim, by = dgp@Tdim)] == assign0)/dgp@Ndim
+    #print(list(missclass,loss))
     best = ii
   }else{ 
     if(loss < min_loss){
       min_loss = loss
-      best_data = data_out
+      best_data = dataoutput
       # Compute missclassification probability:
       best = ii
     }
   }
+  min_loss_mat[ii] = min_loss
 }
 
-missclass <- 1-sum(best_data$assign[seq(1, dgp@Ndim*dgp@Tdim, by = dgp@Tdim)] == assign0)/dgp@Ndim
-print(list(missclass,loss))
 
+
+missclass <- 1-sum(best_data$assign[seq(1, dgp@Ndim*dgp@Tdim, by = dgp@Tdim)] == assign0)/dgp@Ndim
+print(list(best,missclass,min_loss))
+
+if(inicond > 1){
+# plot loss
+plot(min_loss_mat)
+}
+# plot alpha_hat vs alpha0
+print("alpha_hat")
+print(c(sort(unique(best_data$alpha_out))))
+print("alpha true")
+alpha0
 
 
