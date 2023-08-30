@@ -72,7 +72,7 @@ Lloyds <- function(dgp,y,alpha_ini,itermax){
 setClass("DGP", slots = list(Ndim = "numeric",Tdim = "numeric",G = "numeric",sig_alpha = "numeric", sig_err = "numeric"))
 
 
-dgp <- new("DGP",Ndim=1000,Tdim=5,G=5,sig_alpha = 10,sig_err=10)
+dgp <- new("DGP",Ndim=1000,Tdim=50,G=5,sig_alpha = 10,sig_err=10)
 prob_G = rep(1/dgp@G,dgp@G)
 #prob_G = c(0.5,0.5)
 itermax = 50
@@ -84,7 +84,7 @@ alpha0 <- data_out[[2]]
 assign0 <- data_out[[3]]
 
 # Estimate the model
-inicond = 10
+inicond = 100
 min_loss_mat = matrix(0,inicond,1)
 for(ii in 1:inicond){
   print(ii)
