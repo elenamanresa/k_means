@@ -12,7 +12,8 @@ gen_data <-function(dgp,prob_G){
   siga = dgp@sig_alpha
   sigerr = dgp@sig_err
   
-  alpha <- sort(rnorm(G,0,siga))
+  probabilities <- seq(1/(G+1),1,1/G)
+  alpha <-  qnorm(probabilities, mean = 0, sd = siga)
   error <- matrix(rnorm(Ndim*Tdim,0,sigerr),Ndim,Tdim)
   assign <- sample(sample(1:G,Ndim,replace=TRUE,prob=prob_G))
   alpha_mat <- matrix(rep(alpha[assign],Tdim),Ndim,Tdim)
@@ -114,6 +115,7 @@ for(ii in 1:inicond){
     }
   }
   min_loss_mat[ii] = min_loss
+
 }
 
 
