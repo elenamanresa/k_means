@@ -1,5 +1,4 @@
-# cemfi_course
-CEMFI Course 2024
+# CEMFI Course 2024
 
 This is a repository of some simple code to showcase a few methods that we are seeing in class.
 
