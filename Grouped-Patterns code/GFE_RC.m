@@ -18,15 +18,15 @@ K = 2;
 N = size(Y,1)/T;
 
 % Deviations to the mean (optional)
-Ybar=zeros(N,1);
-Xbar=zeros(N,K);
-for i=1:N
-    Ybar(i)=mean(Y((i-1)*T+1:i*T));
-    Xbar(i,:)=mean(X((i-1)*T+1:i*T,:));
-end
+%Ybar=zeros(N,1);
+%Xbar=zeros(N,K);
+%for i=1:N
+%    Ybar(i)=mean(Y((i-1)*T+1:i*T));
+%    Xbar(i,:)=mean(X((i-1)*T+1:i*T,:));
+%end
    
-Y=Y-kron(Ybar,ones(T,1));
-X=X-kron(Xbar,ones(T,1));
+%Y=Y-kron(Ybar,ones(T,1));
+%X=X-kron(Xbar,ones(T,1));
 
 G = 3;
 
