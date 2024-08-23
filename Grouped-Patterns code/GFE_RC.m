@@ -61,7 +61,6 @@ for jsim=1:Nsim
        
         % step 1: update
      
-        
         for i = 1:N
             giaux=kron(eye(T),gi(i,:));
             gitot((i-1)*T+1:T*i,:) = giaux;
