@@ -73,9 +73,8 @@ Lloyds <- function(dgp,y,alpha_ini,itermax){
 setClass("DGP", slots = list(Ndim = "numeric",Tdim = "numeric",G = "numeric",sig_alpha = "numeric", sig_err = "numeric"))
 
 
-dgp <- new("DGP",Ndim=1000,Tdim=50,G=5,sig_alpha = 1,sig_err=1)
+dgp <- new("DGP",Ndim=1000,Tdim=20,G=5,sig_alpha = 1,sig_err=1)
 prob_G = rep(1/dgp@G,dgp@G)
-#prob_G = c(0.5,0.5)
 itermax = 50
 
 # Generate data:
@@ -87,6 +86,7 @@ assign0 <- data_out[[3]]
 # Estimate the model
 inicond = 100
 min_loss_mat = matrix(0,inicond,1)
+min_class_mat = matrix(0,inicond,1)
 for(ii in 1:inicond){
   print(ii)
   alpha_ini = sort(quantile(y,seq(1/(dgp@G+1),1-1/(dgp@G+1),1/(dgp@G+1))) + rnorm(dgp@G))
@@ -102,6 +102,7 @@ for(ii in 1:inicond){
   print(list(missclass,loss))
   if(ii ==1){
     min_loss = loss
+    min_misclass = missclass
     best_data = dataoutput
     #missclass <- 1-sum(best_data$assign[seq(1, dgp@Ndim*dgp@Tdim, by = dgp@Tdim)] == assign0)/dgp@Ndim
     #print(list(missclass,loss))
@@ -109,13 +110,14 @@ for(ii in 1:inicond){
   }else{ 
     if(loss < min_loss){
       min_loss = loss
+      min_misclass = missclass
       best_data = dataoutput
       # Compute missclassification probability:
       best = ii
     }
   }
   min_loss_mat[ii] = min_loss
-
+  min_class_mat[ii] = min_misclass
 }
 
 
@@ -125,12 +127,16 @@ print(list(best,missclass,min_loss))
 
 if(inicond > 1){
 # plot loss
-plot(min_loss_mat[min_loss_mat<1000])
+
+fig1 <- plot(min_loss_mat[min_loss_mat<1000])
+fig2 <- plot(min_class_mat[min_loss_mat<1000])
 }
 # plot alpha_hat vs alpha0
 print("alpha_hat")
 print(c(sort(unique(best_data$alpha_out))))
 print("alpha true")
 alpha0
+
+print(min_class_mat[inicond])
 
 
