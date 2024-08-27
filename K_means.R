@@ -73,7 +73,7 @@ Lloyds <- function(dgp,y,alpha_ini,itermax){
 setClass("DGP", slots = list(Ndim = "numeric",Tdim = "numeric",G = "numeric",sig_alpha = "numeric", sig_err = "numeric"))
 
 
-dgp <- new("DGP",Ndim=1000,Tdim=20,G=5,sig_alpha = 1,sig_err=1)
+dgp <- new("DGP",Ndim=1000,Tdim=40,G=5,sig_alpha = 1,sig_err=2)
 prob_G = rep(1/dgp@G,dgp@G)
 itermax = 50
 
@@ -128,8 +128,10 @@ print(list(best,missclass,min_loss))
 if(inicond > 1){
 # plot loss
 
-fig1 <- plot(min_loss_mat[min_loss_mat<1000])
-fig2 <- plot(min_class_mat[min_loss_mat<1000])
+windows()
+plot(min_loss_mat[min_loss_mat<1000])
+windows()
+plot(min_class_mat[min_loss_mat<1000])
 }
 # plot alpha_hat vs alpha0
 print("alpha_hat")
