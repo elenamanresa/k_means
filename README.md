@@ -1,4 +1,4 @@
-# CEMFI Course 2024
+# Development in the Econometrics with Heterogeneous Workers and Firms Course
 
 This is a repository of some simple code to showcase a few methods that we are seeing in class.
 
